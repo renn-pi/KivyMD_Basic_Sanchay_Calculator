@@ -1,0 +1,176 @@
+from kivy.lang import Builder
+from kivymd.app import MDApp
+from kivymd.uix.button import MDRaisedButton
+from kivymd.uix.label import MDLabel
+from kivymd.uix.screen import MDScreen
+from kivymd.uix.boxlayout import MDBoxLayout
+from kivy.uix.screenmanager import ScreenManager, Screen
+from kivymd.uix.toolbar import MDToolbar
+
+KV = '''
+ScreenManager:
+    MainScreen:
+    InterestCalculatorScreen:
+    FamilySavingScreen:
+
+<MainScreen>:
+    name: 'main'
+    MDBoxLayout:
+        orientation: 'vertical'
+        padding: dp(20)
+        spacing: dp(20)
+
+        MDToolbar:
+            title: 'Sanchay App'
+            md_bg_color: app.theme_cls.primary_color
+            specific_text_color: 1, 1, 1, 1
+
+        Widget:
+
+        MDLabel:
+            text: 'Welcome to Sanchay App!'
+            halign: 'center'
+            font_style: 'H4'
+
+        MDRaisedButton:
+            text: 'Interest Calculator'
+            size_hint: None, None
+            size: dp(250), dp(50)
+            pos_hint: {'center_x': 0.5}
+            on_release: app.root.current = 'interest_calculator'
+
+        MDRaisedButton:
+            text: 'Saving Schemes'
+            size_hint: None, None
+            size: dp(250), dp(50)
+            pos_hint: {'center_x': 0.5}
+
+        MDRaisedButton:
+            text: 'Locations'
+            size_hint: None, None
+            size: dp(250), dp(50)
+            pos_hint: {'center_x': 0.5}
+
+        Widget:
+
+<InterestCalculatorScreen>:
+    name: 'interest_calculator'
+    MDBoxLayout:
+        orientation: 'vertical'
+        padding: dp(20)
+        spacing: dp(20)
+
+        MDToolbar:
+            title: 'Interest Calculator'
+            md_bg_color: app.theme_cls.primary_color
+            specific_text_color: 1, 1, 1, 1
+            left_action_items: [["arrow-left", lambda x: app.change_screen('main')]]
+
+        Widget:
+
+        MDRaisedButton:
+            text: 'Family Saving Certificate'
+            size_hint: None, None
+            size: dp(250), dp(50)
+            pos_hint: {'center_x': 0.5}
+            on_release: app.root.current = 'family_saving'
+
+        MDRaisedButton:
+            text: 'Five-Year BD Saving Certificate'
+            size_hint: None, None
+            size: dp(250), dp(50)
+            pos_hint: {'center_x': 0.5}
+
+        MDRaisedButton:
+            text: 'Three-Month Profit-Bearing Certificate'
+            size_hint: None, None
+            size: dp(250), dp(50)
+            pos_hint: {'center_x': 0.5}
+
+        MDRaisedButton:
+            text: 'Pensioner Saving Certificate'
+            size_hint: None, None
+            size: dp(250), dp(50)
+            pos_hint: {'center_x': 0.5}
+
+        Widget:
+
+<FamilySavingScreen>:
+    name: 'family_saving'
+    MDBoxLayout:
+        orientation: 'vertical'
+        padding: dp(20)
+        spacing: dp(20)
+
+        MDToolbar:
+            title: 'Family Saving Certificate'
+            md_bg_color: app.theme_cls.primary_color
+            specific_text_color: 1, 1, 1, 1
+            left_action_items: [["arrow-left", lambda x: app.change_screen('interest_calculator')]]
+
+        Widget:
+
+        MDTextField:
+            id: amount_input
+            hint_text: 'Enter deposit amount'
+            mode: "rectangle"
+            size_hint_x: 0.8
+            pos_hint: {'center_x': 0.5}
+        
+        MDRaisedButton:
+            text: 'Calculate Interest'
+            size_hint: None, None
+            size: dp(250), dp(50)
+            pos_hint: {'center_x': 0.5}
+            on_release: app.calculate_interest()
+
+        MDLabel:
+            id: result_label
+            size_hint_y: None
+            height: dp(50)
+            halign: 'center'
+        
+        Widget:
+'''
+
+class MainScreen(Screen):
+    pass
+
+class InterestCalculatorScreen(Screen):
+    pass
+
+class FamilySavingScreen(Screen):
+    pass
+
+class SanchayApp(MDApp):
+    def build(self):
+        self.theme_cls.primary_palette = 'Purple'  # Change primary color to purple
+        self.theme_cls.theme_style = 'Light'  # Change theme to light mode
+        return Builder.load_string(KV)
+
+    def change_screen(self, screen_name):
+        self.root.current = screen_name
+
+    def calculate_interest(self):
+        screen = self.root.get_screen('family_saving')
+        amount_input = screen.ids.amount_input
+        result_label = screen.ids.result_label
+
+        try:
+            amount = int(amount_input.text)
+            interest = self.calculate_family_saving_interest(amount)
+            result_label.text = f"Interest: {interest:.2f} BDT"
+        except ValueError:
+            result_label.text = "Invalid input. Please enter a valid amount."
+
+    def calculate_family_saving_interest(self, amount):
+        rate = 0.11
+        yearly = amount * rate
+        monthly = yearly / 12
+        rate_src = 0.05 if amount <= 500000 else 0.10
+        tax = monthly * rate_src
+        interest = monthly - tax
+        return interest
+
+if __name__ == '__main__':
+    SanchayApp().run()
