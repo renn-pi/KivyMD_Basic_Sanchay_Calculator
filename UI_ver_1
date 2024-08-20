@@ -1,0 +1,143 @@
+from kivy.lang import Builder
+from kivy.uix.screenmanager import ScreenManager, Screen
+from kivymd.app import MDApp
+from kivymd.uix.button import MDRaisedButton
+from kivymd.uix.label import MDLabel
+from kivymd.uix.textfield import MDTextField
+
+class FamilySavingScreen(Screen):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.layout = Builder.load_string('''
+BoxLayout:
+    orientation: 'vertical'
+    padding: 50
+    spacing: 10
+
+    MDTextField:
+        id: amount_input
+        hint_text: 'Enter deposit amount'
+        input_filter: 'int'
+        multiline: False
+
+    MDRaisedButton:
+        text: 'Calculate Interest'
+        size_hint_y: None
+        height: '48dp'
+        on_press: app.calculate_interest()
+
+    MDLabel:
+        id: result_label
+        size_hint_y: None
+        height: '200dp'
+        theme_text_color: 'Primary'
+
+    MDRaisedButton:
+        text: 'Back to Menu'
+        size_hint_y: None
+        height: '48dp'
+        on_press: app.go_back()
+''')
+        self.add_widget(self.layout)
+
+class MenuScreen(Screen):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.layout = Builder.load_string('''
+BoxLayout:
+    orientation: 'vertical'
+    padding: 10
+    spacing: 10
+
+    MDRaisedButton:
+        text: 'Family Saving Certificate'
+        on_press: app.go_to_family_saving()
+
+    MDRaisedButton:
+        text: 'Five-Year BD Saving Certificate'
+        on_press: app.go_to_five_year_saving()
+
+    MDRaisedButton:
+        text: 'Three-Month Profit-Bearing Certificate'
+        on_press: app.go_to_profit_bearing()
+
+    MDRaisedButton:
+        text: 'Pensioner Saving Certificate'
+        on_press: app.go_to_pensioner_saving()
+''')
+        self.add_widget(self.layout)
+
+class SavingsApp(MDApp):
+    def build(self):
+        self.sm = ScreenManager()
+        self.sm.add_widget(MenuScreen(name='menu'))
+        self.sm.add_widget(FamilySavingScreen(name='family_saving'))
+        self.sm.add_widget(Screen(name='five_year_saving'))  # Placeholder screen
+        self.sm.add_widget(Screen(name='profit_bearing'))  # Placeholder screen
+        self.sm.add_widget(Screen(name='pensioner_saving'))  # Placeholder screen
+        return self.sm
+
+    def calculate_interest(self):
+        try:
+            amount = int(self.sm.get_screen('family_saving').ids.amount_input.text)
+            result = self.calculate_family_saving_interest(amount)
+            self.sm.get_screen('family_saving').ids.result_label.text = result
+        except ValueError:
+            self.sm.get_screen('family_saving').ids.result_label.text = "Invalid input. Please enter a valid amount."
+
+    def calculate_family_saving_interest(self, amount):
+        def calculate_interest_family(amount, rate):
+            yearly = amount * rate
+            monthly = yearly / 12
+            rate_src = .05 if amount <= 500000 else .10
+            tax = monthly * rate_src
+            interest = monthly - tax
+            return interest
+
+        first_half_interest = calculate_interest_family(1500000, .1152)
+        second_half_interest = calculate_interest_family(1500000, .1050)
+
+        if amount <= 500000:
+            rate = .1152
+            return f"Receive interest per month: {calculate_interest_family(amount, rate)}"
+        elif amount <= 1500000:
+            rate = .1152
+            return f"Receive interest per month: {calculate_interest_family(amount, rate)}"
+        elif amount <= 3000000:
+            rate = .1050
+            rest = amount - 1500000
+            second_interest = calculate_interest_family(rest, rate)
+            total_interest = first_half_interest + second_interest
+            return (f"Receive interest on the first 1,500,000 taka: {first_half_interest}\n"
+                    f"Receive interest on the rest {rest} taka: {second_interest}\n"
+                    f"Total interest per month: {total_interest}")
+        elif amount <= 4500000:
+            rate = .0950
+            rest_over = amount - 3000000
+            third_interest = calculate_interest_family(rest_over, rate)
+            total_interest = first_half_interest + second_half_interest + third_interest
+            return (f"Receive interest on the first 1,500,000 taka: {first_half_interest}\n"
+                    f"Receive interest on the second 1,500,000 taka: {second_half_interest}\n"
+                    f"Receive interest on the rest {rest_over} taka: {third_interest}\n"
+                    f"Total interest per month: {total_interest}")
+        else:
+            return ("Individual deposit amount exceeded for this scheme (family saving certificate).\n"
+                    "Please input any amount up to 4,500,000 taka for Family Savings Certificate and try again.")
+
+    def go_back(self):
+        self.sm.current = 'menu'
+
+    def go_to_family_saving(self):
+        self.sm.current = 'family_saving'
+
+    def go_to_five_year_saving(self):
+        self.sm.current = 'five_year_saving'
+
+    def go_to_profit_bearing(self):
+        self.sm.current = 'profit_bearing'
+
+    def go_to_pensioner_saving(self):
+        self.sm.current = 'pensioner_saving'
+
+if __name__ == '__main__':
+    SavingsApp().run()
